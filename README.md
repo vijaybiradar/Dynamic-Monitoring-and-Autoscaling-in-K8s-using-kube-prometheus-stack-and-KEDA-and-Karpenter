@@ -88,7 +88,7 @@ helm install keda kedacore/keda -n keda
 
 Step 10: Create ScaledObject for Nginx Autoscaling:
 
-Create a ScaledObject YAML file. For example:nginxScaledObject.yaml 
+Create a ScaledObject CRD  file. For example:nginxScaledObject.yaml 
 ```
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
