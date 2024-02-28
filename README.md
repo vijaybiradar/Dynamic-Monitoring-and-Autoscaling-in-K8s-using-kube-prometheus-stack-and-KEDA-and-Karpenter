@@ -145,6 +145,67 @@ Once traffic decreases, observe if the number of pods scales down to the specifi
 
 
 
+Step 11: Add Karpenter Helm Repository
+
+```
+helm repo add karpenter https://awslabs.github.io/karpenter/charts
+helm repo update
+```
+Step 12: Install Karpenter with Helm
+
+```
+helm install karpenter karpenter/karpenter \
+  --namespace karpenter \
+  --set clusterName=<your-cluster-name> \
+  --set cloudProvider.name=<your-cloud-provider> \
+  --set metricsProvider.prometheus.enabled=true \
+  --set metricsProvider.prometheus.endpoint="http://prometheus-kube-prometheus-stack-prometheus.monitoring.svc:9090"
+```
+Replace <your-cluster-name> with the name of your Kubernetes cluster and <your-cloud-provider> with your cloud provider's name.
+
+Step 13: Create a Karpenter Provisioner YAML file
+
+Create a YAML file (e.g., karpenter-provisioner.yaml) to define the Karpenter Provisioner configuration:
+
+```
+apiVersion: karpenter.sh/v1alpha5
+kind: Provisioner
+metadata:
+  name: default
+spec:
+  requirements:
+    - key: karpenter.sh/capacity-type
+      operator: In
+      values: ["on-demand"]
+  limits:
+    resources:
+      cpu: 1000
+      memory: 1000Gi
+  provider:
+    subnetSelector:
+      kubernetes.io/cluster/<cluster-name>: '*'
+    securityGroupSelector:
+      kubernetes.io/cluster/<cluster-name>: '*'
+    instanceProfile: <launch-profile-name>
+  ttlSecondsAfterEmpty: 30
+  ttlSecondsUntilExpired: 2592000
+```
+Replace <cluster-name> with the name of your Kubernetes cluster and <launch-profile-name> with the name of the launch profile to be used for new nodes.
+
+Step 4: Apply the Karpenter Provisioner YAML file
+
+Apply the Karpenter Provisioner configuration to your Kubernetes cluster:
+
+```
+kubectl apply -f karpenter-provisioner.yaml -n karpenter
+```
+Step 5: Monitor Karpenter
+
+Monitor the Karpenter pods to ensure they are running properly:
+
+```
+kubectl get pods -n karpenter
+```
 
 
 
